@@ -41,7 +41,7 @@ module CarryLookaheadAdderTB;
     a   = 10;
     b   = 7;
 
-    #10;
+    #110;
     if (s_o != s_p) begin
       $display("ERROR: Outputs not the same:");
       $finish;
@@ -51,7 +51,7 @@ module CarryLookaheadAdderTB;
     a = 20;
     b = 31;
 
-    #10;
+    #110;
     if (s_o != s_p) begin
       $display("ERROR: Outputs not the same:");
       $finish;
@@ -61,7 +61,7 @@ module CarryLookaheadAdderTB;
     a = 5;
     b = 23;
 
-    #10;
+    #110;
     if (s_o != s_p) begin
       $display("ERROR: Outputs not the same:");
       $finish;
@@ -71,7 +71,7 @@ module CarryLookaheadAdderTB;
     a = 107;
     b = 72;
 
-    #10;
+    #110;
     if (s_o != s_p) begin
       $display("ERROR: Outputs not the same:");
       $finish;

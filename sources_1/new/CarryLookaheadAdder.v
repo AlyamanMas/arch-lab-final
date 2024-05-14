@@ -10,8 +10,10 @@ module CarryLookaheadAdder #(
   wire [WIDTH:0] w_C;
   wire [WIDTH-1:0] w_G, w_P, w_SUM;
 
-  // reg [WIDTH:0] r_C;
-  reg [WIDTH-1:0] r_G, r_P;
+  reg [WIDTH-1:0] r_add1[WIDTH-1:0];
+  reg [WIDTH-1:0] r_add2[WIDTH-1:0];
+  reg [  WIDTH:0] r_C[WIDTH-1:0];
+  reg [WIDTH-1:0] r_G [WIDTH-1:0], r_P[WIDTH-1:0], r_SUM[WIDTH:0];
 
   // Create the Full Adders
   genvar ii;
@@ -27,32 +29,50 @@ module CarryLookaheadAdder #(
   genvar jj;
   generate
     for (jj = 0; jj < WIDTH; jj = jj + 1) begin
-      assign w_G[jj]   = i_add1[jj] & i_add2[jj];
-      assign w_P[jj]   = i_add1[jj] | i_add2[jj];
-      assign w_C[jj+1] = r_G[jj] | (r_P[jj] & w_C[jj]);
+      assign w_G[jj] = i_add1[jj] & i_add2[jj];
+      assign w_P[jj] = i_add1[jj] | i_add2[jj];
+      assign w_C[jj+1] = w_G[jj] | (w_P[jj] & w_C[jj]);
     end
   endgenerate
 
   integer i;
+  integer j;
   always @(posedge clk, posedge rst) begin
     if (rst) begin
       for (i = 0; i < WIDTH; i = i + 1) begin
         r_G[i] <= 0;
         r_P[i] <= 0;
-        // r_C[i] <= 0;
+        r_C[i] <= 0;
+        r_SUM[i] <= 0;
+        r_add1[i] <= 0;
+        r_add2[i] <= 0;
       end
-      // r_C[WIDTH] <= 0;
+      r_C[WIDTH] = 0;
     end // rst
     else begin
-      for (i = 0; i < WIDTH; i = i + 1) begin
-        r_G[i] <= w_G[i];
-        r_P[i] <= w_P[i];
-        // r_C[i+1] <= r_G[i] | (r_P[i] & r_C[i]);
+      r_add1[0] <= i_add1;
+      r_add2[0] <= i_add2;
+      r_SUM[WIDTH] <= r_SUM[WIDTH-1];
+      for (j = 0; j < WIDTH; j = j + 1) begin
+        r_SUM[0][j] <= r_add1[0][j] + r_add2[0][j] + r_C[0][j];
+        r_G[0][j]   <= r_add1[0][j] & r_add2[0][j];
+        r_P[0][j]   <= r_add1[0][j] | r_add2[0][j];
+        r_C[0+1][j] = r_G[0][j] | (r_P[0][j] & r_C[0][j]);
+      end
+      for (i = 1; i < WIDTH; i = i + 1) begin
+        r_add1[i] <= r_add1[i-1];
+        r_add2[i] <= r_add2[i-1];
+        for (j = 0; j < WIDTH; j = j + 1) begin
+          r_SUM[i][j] <= r_add1[i][j] + r_add2[i][j] + r_C[i-1][j];
+          r_G[i]   <= r_G[i-1];
+          r_P[i]   <= r_P[i-1];
+          r_C[i][j+1] = r_G[i][j] | (r_P[i][j] & r_C[i][j]);
+        end
       end
     end
   end
 
   assign w_C[0]   = 1'b0;  // no carry input on first adder
 
-  assign o_result = {w_C[WIDTH], w_SUM};  // Verilog Concatenation
+  assign o_result = {r_C[WIDTH-1][WIDTH], r_SUM[WIDTH]};  // Verilog Concatenation
 endmodule  // carry_lookahead_adder
